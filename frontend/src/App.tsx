@@ -7,6 +7,7 @@ import theme from './theme';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Lazy-loaded pages for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'));
@@ -59,7 +60,8 @@ const RootRedirect: React.FC = () => {
 
   if (isLoading) return <LoadingFallback />;
 
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Unauthenticated visitors see the homepage
+  if (!isAuthenticated) return <HomePage />;
 
   const routes: Record<string, string> = {
     PATIENT: '/patient/dashboard',

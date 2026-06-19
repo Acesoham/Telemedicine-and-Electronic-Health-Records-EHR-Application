@@ -51,13 +51,14 @@ export const auditLog = (options: AuditOptions) => {
 
 /**
  * Direct audit log write utility (for use in services)
+ * This is best-effort — errors are swallowed so they never cause a 500 response.
  */
 export const writeAuditLog = async (params: {
   userId?: string;
   userEmail?: string;
   role?: UserRole;
   action: AuditAction;
-  ipAddress: string;
+  ipAddress?: string;
   userAgent?: string;
   resource?: string;
   resourceId?: string;
@@ -68,6 +69,7 @@ export const writeAuditLog = async (params: {
   try {
     await AuditLog.create({
       ...params,
+      ipAddress: params.ipAddress || 'unknown',
       timestamp: new Date(),
     });
   } catch (err) {

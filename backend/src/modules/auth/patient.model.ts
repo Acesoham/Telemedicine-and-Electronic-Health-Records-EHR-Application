@@ -46,7 +46,7 @@ const PatientSchema = new Schema<IPatient>(
       unique: true,
     },
     firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
+    lastName: { type: String, trim: true, default: '' },
     dateOfBirth: { type: Date, required: true },
     gender: {
       type: String,

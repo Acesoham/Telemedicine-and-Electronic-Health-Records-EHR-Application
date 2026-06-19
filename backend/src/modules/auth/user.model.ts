@@ -65,12 +65,11 @@ UserSchema.index({ role: 1 });
 UserSchema.index({ isActive: 1 });
 UserSchema.index({ createdAt: -1 });
 
-// Hash password before saving
-UserSchema.pre('save' as any, async function (this: any, next: (err?: Error) => void) {
-  if (!this.isModified('passwordHash')) return next();
+// Hash password before saving — Mongoose 8+ async middleware: do NOT call next()
+UserSchema.pre('save', async function (this: IUser) {
+  if (!this.isModified('passwordHash')) return;
   const salt = await bcrypt.genSalt(12);
   this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
-  next();
 });
 
 // Compare password method

@@ -1,12 +1,11 @@
 import { User, IUser } from '../modules/auth/user.model';
 import { Patient } from '../modules/auth/patient.model';
 import { Doctor } from '../modules/auth/doctor.model';
-import { generateTokenPair, verifyRefreshToken, signAccessToken } from '../utils/jwt';
+import { generateTokenPair, verifyRefreshToken } from '../utils/jwt';
 import { writeAuditLog } from '../middleware/audit.middleware';
 import { AppError } from '../middleware/error.middleware';
 import { RegisterInput, LoginInput } from '../validators/auth.validator';
 import { logger } from '../utils/logger';
-import mongoose from 'mongoose';
 
 interface AuthResult {
   user: Omit<IUser, 'passwordHash' | 'refreshTokens'>;
@@ -19,59 +18,46 @@ export class AuthService {
    * Register a new patient or doctor
    */
   async register(input: RegisterInput, ipAddress: string): Promise<AuthResult> {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // Check for existing user first
+    const existingUser = await User.findOne({ email: input.email });
+    if (existingUser) {
+      throw new AppError('An account with this email already exists.', 409);
+    }
+
+    // Create user document (no session — Atlas M0 does not support transactions)
+    const user = new User({
+      email: input.email,
+      passwordHash: input.password,
+      role: input.role,
+    });
+    await user.save();
 
     try {
-      // Check for existing user
-      const existingUser = await User.findOne({ email: input.email }).session(session);
-      if (existingUser) {
-        throw new AppError('An account with this email already exists.', 409);
-      }
-
-      // Create user
-      const user = new User({
-        email: input.email,
-        passwordHash: input.password,
-        role: input.role,
-      });
-      await user.save({ session });
-
       // Create role-specific profile
       if (input.role === 'PATIENT') {
         if (!input.dateOfBirth || !input.gender) {
           throw new AppError('Date of birth and gender are required for patients.', 400);
         }
-        await Patient.create(
-          [
-            {
-              userId: user._id,
-              firstName: input.firstName,
-              lastName: input.lastName,
-              dateOfBirth: new Date(input.dateOfBirth),
-              gender: input.gender,
-              phone: input.phone || '',
-            },
-          ],
-          { session },
-        );
+        await Patient.create({
+          userId: user._id,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          dateOfBirth: new Date(input.dateOfBirth),
+          gender: input.gender,
+          phone: input.phone || '',
+        });
       } else if (input.role === 'DOCTOR') {
         if (!input.specialization || !input.licenseNumber) {
           throw new AppError('Specialization and license number are required for doctors.', 400);
         }
-        await Doctor.create(
-          [
-            {
-              userId: user._id,
-              firstName: input.firstName,
-              lastName: input.lastName,
-              specialization: input.specialization,
-              licenseNumber: input.licenseNumber,
-              phone: input.phone || '',
-            },
-          ],
-          { session },
-        );
+        await Doctor.create({
+          userId: user._id,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          specialization: input.specialization,
+          licenseNumber: input.licenseNumber,
+          phone: input.phone || '',
+        });
       }
 
       // Generate tokens
@@ -84,11 +70,9 @@ export class AuthService {
       // Store refresh token
       user.refreshTokens = [tokens.refreshToken];
       user.lastLoginAt = new Date();
-      await user.save({ session });
+      await user.save();
 
-      await session.commitTransaction();
-
-      // Audit log
+      // Audit log (best-effort — never blocks registration)
       await writeAuditLog({
         userId: user._id.toString(),
         userEmail: user.email,
@@ -107,10 +91,11 @@ export class AuthService {
         ...tokens,
       };
     } catch (error) {
-      await session.abortTransaction();
+      // Manual rollback: delete the user if profile creation or token save failed
+      await User.deleteOne({ _id: user._id }).catch((e) =>
+        logger.error('Rollback failed — orphaned user doc', { id: user._id, error: e }),
+      );
       throw error;
-    } finally {
-      session.endSession();
     }
   }
 

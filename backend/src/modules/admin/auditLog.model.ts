@@ -53,7 +53,7 @@ const AuditLogSchema = new Schema<IAuditLog>(
         'UNAUTHORIZED_ACCESS',
       ],
     },
-    ipAddress: { type: String, required: true },
+    ipAddress: { type: String, default: 'unknown' },
     userAgent: { type: String },
     resource: { type: String },
     resourceId: { type: String },
