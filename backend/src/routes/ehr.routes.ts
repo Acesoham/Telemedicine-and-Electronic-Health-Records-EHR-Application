@@ -6,6 +6,7 @@ import {
   getMyRecord,
   getPatientRecord,
   updateRecord,
+  updateMyRecord,
   addDiagnosis,
   addConsultationNote,
 } from '../controllers/ehr.controller';
@@ -26,6 +27,14 @@ router.get(
   authorize('PATIENT'),
   auditLog({ action: 'VIEW_RECORD', resource: 'MedicalRecord' }),
   getMyRecord
+);
+
+// Patient self-update (demographics, allergies, medical history)
+router.put(
+  '/my-record',
+  authorize('PATIENT'),
+  auditLog({ action: 'UPDATE_RECORD', resource: 'MedicalRecord' }),
+  updateMyRecord
 );
 
 // Doctor & Admin routes

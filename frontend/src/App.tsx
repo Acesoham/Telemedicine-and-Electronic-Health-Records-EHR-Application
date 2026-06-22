@@ -11,17 +11,20 @@ const HomePage = lazy(() => import('./pages/HomePage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'));
-const DoctorDashboard = lazy(() => import('./pages/doctor/DoctorDashboard'));
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-
+const PatientAppointments = lazy(() => import('./pages/patient/PatientAppointments'));
+const PatientPrescriptions = lazy(() => import('./pages/patient/PatientPrescriptions'));
 const PatientRecords = lazy(() => import('./pages/patient/PatientRecords'));
+
+const DoctorDashboard = lazy(() => import('./pages/doctor/DoctorDashboard'));
+const DoctorAppointments = lazy(() => import('./pages/doctor/DoctorAppointments'));
+const DoctorProfile = lazy(() => import('./pages/doctor/DoctorProfile'));
+const ConsultationRoom = lazy(() => import('./pages/shared/ConsultationRoom'));
+
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'));
 
 // Stub pages (fully implemented in later phases)
 const {
-  PatientAppointments,
-  PatientPrescriptions,
-  ConsultationRoom,
   DoctorPatients,
   DoctorAvailability,
   DoctorConsultations,
@@ -29,9 +32,6 @@ const {
   AdminUsers,
   AdminAnalytics,
 } = {
-  PatientAppointments: lazy(() => import('./pages/StubPages').then(m => ({ default: m.PatientAppointments }))),
-  PatientPrescriptions: lazy(() => import('./pages/StubPages').then(m => ({ default: m.PatientPrescriptions }))),
-  ConsultationRoom: lazy(() => import('./pages/StubPages').then(m => ({ default: m.ConsultationRoom }))),
   DoctorPatients: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorPatients }))),
   DoctorAvailability: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorAvailability }))),
   DoctorConsultations: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorConsultations }))),
@@ -111,6 +111,8 @@ const App: React.FC = () => {
                   <ProtectedRoute allowedRoles={['DOCTOR']}>
                     <Routes>
                       <Route path="dashboard" element={<DoctorDashboard />} />
+                      <Route path="appointments" element={<DoctorAppointments />} />
+                      <Route path="profile" element={<DoctorProfile />} />
                       <Route path="patients" element={<DoctorPatients />} />
                       <Route path="availability" element={<DoctorAvailability />} />
                       <Route path="consultations" element={<DoctorConsultations />} />

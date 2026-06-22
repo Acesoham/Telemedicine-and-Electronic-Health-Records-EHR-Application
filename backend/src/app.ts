@@ -9,6 +9,7 @@ import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import ehrRoutes from './routes/ehr.routes';
 import auditRoutes from './routes/audit.routes';
+import appointmentRoutes from './routes/appointment.routes';
 
 const createApp = (): Application => {
   const app = express();
@@ -95,6 +96,8 @@ const createApp = (): Application => {
   app.use('/api/auth', authRoutes);
   app.use('/api/ehr', ehrRoutes);
   app.use('/api/audit', auditRoutes);
+  app.use('/api/appointments', appointmentRoutes);
+  // /api/doctors is handled inside appointmentRoutes
 
   // ──────────────────────────────────────
   // Error Handling (must be last)

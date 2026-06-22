@@ -23,7 +23,7 @@ export const validate = (schema: ZodSchema, type: ValidationType = 'body') => {
     } catch (error) {
       if (error instanceof ZodError) {
         const errors: Record<string, string[]> = {};
-        const errorList = (error as ZodError).errors || [];
+        const errorList = (error as ZodError).issues || [];
         errorList.forEach((err: any) => {
           const path = (err.path || []).join('.') || '_';
           if (!errors[path]) errors[path] = [];

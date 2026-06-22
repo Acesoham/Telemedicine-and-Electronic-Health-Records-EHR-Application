@@ -249,7 +249,25 @@ export class AuthService {
       profile = await Doctor.findOne({ userId }).exec();
     }
 
-    return { user, profile };
+    return { user: user.toJSON(), profile };
+  }
+
+  /**
+   * Update doctor profile
+   */
+  async updateDoctorProfile(userId: string, data: any) {
+    const doctor = await Doctor.findOne({ userId });
+    if (!doctor) throw new AppError('Doctor profile not found', 404);
+
+    const allowedFields = ['bio', 'specialization', 'qualifications', 'yearsOfExperience', 'consultationDurationMinutes', 'isAcceptingAppointments'];
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        (doctor as any)[field] = data[field];
+      }
+    }
+
+    await doctor.save();
+    return doctor;
   }
 }
 

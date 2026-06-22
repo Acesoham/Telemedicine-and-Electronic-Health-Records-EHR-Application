@@ -77,4 +77,15 @@ router.get(
   authController.getProfile.bind(authController),
 );
 
+/**
+ * @route   PUT /api/auth/profile/doctor
+ * @desc    Update doctor profile
+ * @access  Private (Doctor only)
+ */
+router.put(
+  '/profile/doctor',
+  authenticate,
+  authController.updateDoctorProfile.bind(authController),
+);
+
 export default router;

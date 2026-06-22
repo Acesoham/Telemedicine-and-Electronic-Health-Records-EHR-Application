@@ -63,7 +63,7 @@ const DoctorSchema = new Schema<IDoctor>(
     yearsOfExperience: { type: Number, default: 0 },
     availabilitySlots: { type: [AvailabilitySlotSchema], default: [] },
     consultationDurationMinutes: { type: Number, default: 30 },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: true },
     isAcceptingAppointments: { type: Boolean, default: true },
   },
   {

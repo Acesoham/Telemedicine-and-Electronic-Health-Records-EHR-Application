@@ -89,6 +89,25 @@ export class AuthController {
       next(error);
     }
   }
+
+  async updateDoctorProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (req.user!.role !== 'DOCTOR') {
+        const { AppError } = require('../middleware/error.middleware');
+        throw new AppError('Only doctors can update this profile', 403);
+      }
+      const updated = await authService.updateDoctorProfile(req.user!.userId, req.body);
+      
+      const response: ApiResponse = {
+        success: true,
+        message: 'Doctor profile updated successfully.',
+        data: updated,
+      };
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const authController = new AuthController();

@@ -23,7 +23,7 @@ import {
 } from '@mui/icons-material';
 import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
-import { appointmentsApi, prescriptionsApi } from '../../services/api';
+import { appointmentsApi, prescriptionsApi, ehrApi } from '../../services/api';
 import { Appointment, Prescription } from '../../types';
 import { useNavigate } from 'react-router-dom';
 
@@ -112,6 +112,7 @@ const PatientDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [ehrRecord, setEhrRecord] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const patientProfile = profile as {
@@ -123,15 +124,23 @@ const PatientDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [apptRes, _rxRes] = await Promise.allSettled([
+        const [apptRes, rxRes, ehrRes] = await Promise.allSettled([
           appointmentsApi.getAll({ limit: 5, status: 'CONFIRMED,PENDING' }),
           patientProfile?._id
             ? prescriptionsApi.getPatientPrescriptions(patientProfile._id)
             : Promise.resolve(null),
+          ehrApi.getMyRecord(),
         ]);
 
         if (apptRes.status === 'fulfilled') {
           setAppointments((apptRes.value?.data?.data as { data: Appointment[] })?.data || []);
+        }
+        if (rxRes.status === 'fulfilled' && rxRes.value) {
+          const rxData = (rxRes.value as any).data?.data;
+          setPrescriptions(Array.isArray(rxData) ? rxData : rxData?.data || []);
+        }
+        if (ehrRes.status === 'fulfilled' && ehrRes.value) {
+          setEhrRecord(ehrRes.value.data?.data);
         }
       } catch {
         // Silent fail — dashboard gracefully shows empty states
@@ -404,9 +413,11 @@ const PatientDashboard: React.FC = () => {
                 Health Summary
               </Typography>
               {[
-                { label: 'Blood Group', value: 'Not set' },
-                { label: 'Known Allergies', value: 'Not set' },
-                { label: 'Last Consultation', value: 'No records' },
+                { label: 'Blood Group', value: ehrRecord?.demographics?.bloodGroup || 'Not set' },
+                { label: 'Height', value: ehrRecord?.demographics?.height || 'Not set' },
+                { label: 'Weight', value: ehrRecord?.demographics?.weight || 'Not set' },
+                { label: 'Known Allergies', value: ehrRecord?.allergies?.length ? ehrRecord.allergies.join(', ') : 'None reported' },
+                { label: 'Last Consultation', value: ehrRecord?.consultationNotes?.length ? new Date(ehrRecord.consultationNotes[ehrRecord.consultationNotes.length - 1].createdAt).toLocaleDateString() : 'No records' },
               ].map((item) => (
                 <Box
                   key={item.label}

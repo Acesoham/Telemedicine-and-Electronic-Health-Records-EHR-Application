@@ -33,7 +33,7 @@ let failedQueue: Array<{
 
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
-    if (error) {
+    if (error) {                                                                
       prom.reject(error);
     } else {
       prom.resolve(token);
@@ -122,6 +122,8 @@ export const authApi = {
     apiClient.post<ApiResponse>('/auth/logout', { refreshToken }),
 
   getProfile: () => apiClient.get<ApiResponse>('/auth/profile'),
+  updateDoctorProfile: (data: Record<string, unknown>) =>
+    apiClient.put<ApiResponse>('/auth/profile/doctor', data),
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -129,8 +131,13 @@ export const authApi = {
 // ──────────────────────────────────────────────────────────────
 export const ehrApi = {
   getRecord: (patientId: string) => apiClient.get<ApiResponse>(`/ehr/${patientId}`),
+  getMyRecord: () => apiClient.get<ApiResponse>('/ehr/my-record'),
+  updateMyRecord: (data: Record<string, unknown>) =>
+    apiClient.put<ApiResponse>('/ehr/my-record', data),
   updateRecord: (patientId: string, data: Record<string, unknown>) =>
     apiClient.put<ApiResponse>(`/ehr/${patientId}`, data),
+  getPatientRecord: (patientId: string) =>
+    apiClient.get<ApiResponse>(`/ehr/patient/${patientId}`),
   uploadReport: (patientId: string, formData: FormData) =>
     apiClient.post<ApiResponse>(`/ehr/${patientId}/reports`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -143,6 +150,8 @@ export const ehrApi = {
 export const appointmentsApi = {
   getAll: (params?: Record<string, unknown>) =>
     apiClient.get<ApiResponse>('/appointments', { params }),
+  getById: (id: string) =>
+    apiClient.get<ApiResponse>(`/appointments/${id}`),
   create: (data: Record<string, unknown>) =>
     apiClient.post<ApiResponse>('/appointments', data),
   confirm: (id: string) => apiClient.put<ApiResponse>(`/appointments/${id}/confirm`),
@@ -155,12 +164,24 @@ export const appointmentsApi = {
 };
 
 // ──────────────────────────────────────────────────────────────
+// Doctors API
+// ──────────────────────────────────────────────────────────────
+export const doctorsApi = {
+  getAll: (params?: Record<string, unknown>) =>
+    apiClient.get<ApiResponse>('/appointments/doctors', { params }),
+  getById: (id: string) =>
+    apiClient.get<ApiResponse>(`/appointments/doctors/${id}`),
+};
+
+// ──────────────────────────────────────────────────────────────
 // Prescriptions API
 // ──────────────────────────────────────────────────────────────
 export const prescriptionsApi = {
   create: (data: Record<string, unknown>) =>
     apiClient.post<ApiResponse>('/prescriptions', data),
   getById: (id: string) => apiClient.get<ApiResponse>(`/prescriptions/${id}`),
+  getMyPrescriptions: () =>
+    apiClient.get<ApiResponse>('/prescriptions/my'),
   download: (id: string) =>
     apiClient.get(`/prescriptions/${id}/download`, { responseType: 'blob' }),
   getPatientPrescriptions: (patientId: string) =>
