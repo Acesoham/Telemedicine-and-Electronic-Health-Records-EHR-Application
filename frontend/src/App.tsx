@@ -18,6 +18,7 @@ const PatientRecords = lazy(() => import('./pages/patient/PatientRecords'));
 const DoctorDashboard = lazy(() => import('./pages/doctor/DoctorDashboard'));
 const DoctorAppointments = lazy(() => import('./pages/doctor/DoctorAppointments'));
 const DoctorProfile = lazy(() => import('./pages/doctor/DoctorProfile'));
+const PrescriptionGenerator = lazy(() => import('./pages/doctor/PrescriptionGenerator'));
 const ConsultationRoom = lazy(() => import('./pages/shared/ConsultationRoom'));
 
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -28,14 +29,12 @@ const {
   DoctorPatients,
   DoctorAvailability,
   DoctorConsultations,
-  PrescriptionGenerator,
   AdminUsers,
   AdminAnalytics,
 } = {
   DoctorPatients: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorPatients }))),
   DoctorAvailability: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorAvailability }))),
   DoctorConsultations: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorConsultations }))),
-  PrescriptionGenerator: lazy(() => import('./pages/StubPages').then(m => ({ default: m.PrescriptionGenerator }))),
   AdminUsers: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminUsers }))),
   AdminAnalytics: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminAnalytics }))),
 };
@@ -61,7 +60,13 @@ const RootRedirect: React.FC = () => {
   if (isLoading) return <LoadingFallback />;
 
   // Unauthenticated visitors see the homepage
-  if (!isAuthenticated) return <HomePage />;
+  if (!isAuthenticated) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <HomePage />
+      </Suspense>
+    );
+  }
 
   const routes: Record<string, string> = {
     PATIENT: '/patient/dashboard',

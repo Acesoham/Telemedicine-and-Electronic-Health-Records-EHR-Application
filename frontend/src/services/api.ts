@@ -185,7 +185,7 @@ export const prescriptionsApi = {
   download: (id: string) =>
     apiClient.get(`/prescriptions/${id}/download`, { responseType: 'blob' }),
   getPatientPrescriptions: (patientId: string) =>
-    apiClient.get<ApiResponse>(`/patients/${patientId}/prescriptions`),
+    apiClient.get<ApiResponse>(`/prescriptions/patient/${patientId}`),
   verify: (hash: string) => apiClient.get<ApiResponse>(`/prescriptions/verify/${hash}`),
 };
 
