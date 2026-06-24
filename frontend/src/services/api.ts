@@ -190,6 +190,28 @@ export const prescriptionsApi = {
 };
 
 // ──────────────────────────────────────────────────────────────
+// Availability API
+// ──────────────────────────────────────────────────────────────
+export const availabilityApi = {
+  /** Doctor: fetch own availability schedule */
+  getMyAvailability: () => apiClient.get<ApiResponse>('/availability/me'),
+  /** Doctor: save own availability schedule */
+  updateMyAvailability: (data: {
+    availabilitySlots?: {
+      dayOfWeek: number;
+      startTime: string;
+      endTime: string;
+      isAvailable: boolean;
+    }[];
+    consultationDurationMinutes?: number;
+    isAcceptingAppointments?: boolean;
+  }) => apiClient.put<ApiResponse>('/availability/me', data),
+  /** Patient/any: view a specific doctor's availability */
+  getDoctorAvailability: (doctorId: string) =>
+    apiClient.get<ApiResponse>(`/availability/${doctorId}`),
+};
+
+// ──────────────────────────────────────────────────────────────
 // Admin API
 // ──────────────────────────────────────────────────────────────
 export const adminApi = {

@@ -11,6 +11,7 @@ import ehrRoutes from './routes/ehr.routes';
 import auditRoutes from './routes/audit.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import prescriptionRoutes from './routes/prescription.routes';
+import availabilityRoutes from './routes/availability.routes';
 
 const createApp = (): Application => {
   const app = express();
@@ -99,6 +100,7 @@ const createApp = (): Application => {
   app.use('/api/audit', auditRoutes);
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/prescriptions', prescriptionRoutes);
+  app.use('/api/availability', availabilityRoutes);
   // /api/doctors is handled inside appointmentRoutes
 
   // ──────────────────────────────────────

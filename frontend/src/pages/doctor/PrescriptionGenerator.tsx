@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Card, CardContent, Typography, Button, TextField, Grid2 as Grid,
+  Box, Card, CardContent, Typography, Button, TextField, Grid as Grid,
   IconButton, Alert, CircularProgress, Autocomplete, Divider, Paper
 } from '@mui/material';
 import {
@@ -57,7 +57,7 @@ const PrescriptionGenerator: React.FC = () => {
     const fetchAppointments = async () => {
       try {
         const res = await appointmentsApi.getAll({ limit: 100 });
-        const data = (res.data?.data as any)?.data || [];
+        const data = (res.data?.data as { data?: Appointment[] })?.data || [];
         const validAppts = data.filter(
           (a: Appointment) => a.status === 'CONFIRMED' || a.status === 'COMPLETED',
         );
@@ -125,8 +125,9 @@ const PrescriptionGenerator: React.FC = () => {
       setGeneralInstructions('');
       setSelectedAppointment(null);
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create prescription');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || 'Failed to create prescription');
     } finally {
       setLoading(false);
     }

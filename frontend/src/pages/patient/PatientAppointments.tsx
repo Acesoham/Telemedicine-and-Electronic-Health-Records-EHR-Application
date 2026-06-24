@@ -22,7 +22,7 @@ import {
 import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
 import { useNavigate } from 'react-router-dom';
 import { doctorsApi, appointmentsApi } from '../../services/api';
-import { DoctorProfile, Appointment } from '../../types';
+import { DoctorProfile, Appointment, AvailabilitySlot } from '../../types';
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/patient/dashboard', icon: <DashboardIcon /> },
@@ -37,6 +37,59 @@ const STATUS_COLORS: Record<string, 'default' | 'primary' | 'success' | 'error' 
   CANCELLED: 'error',
   COMPLETED: 'primary',
   NO_SHOW: 'default',
+};
+
+const DAYS_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const AvailabilityBadge: React.FC<{ slots: AvailabilitySlot[] }> = ({ slots }) => {
+  const activeSlots = slots.filter((s) => s.isAvailable);
+  if (activeSlots.length === 0) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Typography variant="caption" color="text.disabled">No schedule set</Typography>
+      </Box>
+    );
+  }
+  // Group by day
+  const byDay: Record<number, AvailabilitySlot[]> = {};
+  activeSlots.forEach((s) => {
+    if (!byDay[s.dayOfWeek]) byDay[s.dayOfWeek] = [];
+    byDay[s.dayOfWeek].push(s);
+  });
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mb: 0.5 }}>
+        Available days:
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+        {[0, 1, 2, 3, 4, 5, 6].map((d) => {
+          const has = !!byDay[d];
+          return (
+            <Chip
+              key={d}
+              label={DAYS_SHORT[d]}
+              size="small"
+              variant={has ? 'filled' : 'outlined'}
+              sx={{
+                fontSize: '0.65rem',
+                height: 20,
+                fontWeight: has ? 700 : 400,
+                bgcolor: has ? alpha('#1565C0', 0.12) : 'transparent',
+                color: has ? 'primary.main' : 'text.disabled',
+                border: has ? `1px solid ${alpha('#1565C0', 0.3)}` : undefined,
+              }}
+            />
+          );
+        })}
+      </Box>
+      {/* Show first slot time as representative */}
+      {activeSlots.length > 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+          Typically {activeSlots[0].startTime} – {activeSlots[0].endTime}
+        </Typography>
+      )}
+    </Box>
+  );
 };
 
 // ─── Doctor Card ─────────────────────────────────────────────────────────────
@@ -101,6 +154,11 @@ const DoctorCard: React.FC<{ doctor: DoctorProfile; onBook: (d: DoctorProfile) =
           ))}
         </Box>
       )}
+
+      {/* Availability schedule */}
+      <Box sx={{ mb: 1, p: 1.5, bgcolor: alpha('#1565C0', 0.04), borderRadius: 1.5, border: '1px solid', borderColor: alpha('#1565C0', 0.1) }}>
+        <AvailabilityBadge slots={doctor.availabilitySlots || []} />
+      </Box>
     </CardContent>
 
     <Box sx={{ px: 3, pb: 3, pt: 0 }}>

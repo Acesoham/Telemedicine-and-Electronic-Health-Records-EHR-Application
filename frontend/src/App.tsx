@@ -19,6 +19,9 @@ const DoctorDashboard = lazy(() => import('./pages/doctor/DoctorDashboard'));
 const DoctorAppointments = lazy(() => import('./pages/doctor/DoctorAppointments'));
 const DoctorProfile = lazy(() => import('./pages/doctor/DoctorProfile'));
 const PrescriptionGenerator = lazy(() => import('./pages/doctor/PrescriptionGenerator'));
+const DoctorAvailabilityPage = lazy(() => import('./pages/doctor/DoctorAvailability'));
+const DoctorPatientsPage = lazy(() => import('./pages/doctor/DoctorPatients'));
+const DoctorConsultationsPage = lazy(() => import('./pages/doctor/DoctorConsultations'));
 const ConsultationRoom = lazy(() => import('./pages/shared/ConsultationRoom'));
 
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
@@ -26,15 +29,9 @@ const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'));
 
 // Stub pages (fully implemented in later phases)
 const {
-  DoctorPatients,
-  DoctorAvailability,
-  DoctorConsultations,
   AdminUsers,
   AdminAnalytics,
 } = {
-  DoctorPatients: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorPatients }))),
-  DoctorAvailability: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorAvailability }))),
-  DoctorConsultations: lazy(() => import('./pages/StubPages').then(m => ({ default: m.DoctorConsultations }))),
   AdminUsers: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminUsers }))),
   AdminAnalytics: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminAnalytics }))),
 };
@@ -118,9 +115,9 @@ const App: React.FC = () => {
                       <Route path="dashboard" element={<DoctorDashboard />} />
                       <Route path="appointments" element={<DoctorAppointments />} />
                       <Route path="profile" element={<DoctorProfile />} />
-                      <Route path="patients" element={<DoctorPatients />} />
-                      <Route path="availability" element={<DoctorAvailability />} />
-                      <Route path="consultations" element={<DoctorConsultations />} />
+                      <Route path="patients" element={<DoctorPatientsPage />} />
+                      <Route path="availability" element={<DoctorAvailabilityPage />} />
+                      <Route path="consultations" element={<DoctorConsultationsPage />} />
                       <Route path="consultation/:roomToken" element={<ConsultationRoom />} />
                       <Route path="prescriptions/new" element={<PrescriptionGenerator />} />
                       <Route path="*" element={<Navigate to="dashboard" replace />} />
