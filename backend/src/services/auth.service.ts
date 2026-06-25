@@ -259,7 +259,7 @@ export class AuthService {
     const doctor = await Doctor.findOne({ userId });
     if (!doctor) throw new AppError('Doctor profile not found', 404);
 
-    const allowedFields = ['bio', 'specialization', 'qualifications', 'yearsOfExperience', 'consultationDurationMinutes', 'isAcceptingAppointments'];
+    const allowedFields = ['bio', 'specialization', 'qualifications', 'degreeImage', 'yearsOfExperience', 'consultationDurationMinutes', 'isAcceptingAppointments'];
     for (const field of allowedFields) {
       if (data[field] !== undefined) {
         (doctor as any)[field] = data[field];

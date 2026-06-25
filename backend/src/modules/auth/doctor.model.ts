@@ -18,6 +18,7 @@ export interface IDoctor extends Document {
   bio: string;
   profilePhoto?: string;
   qualifications: string[];
+  degreeImage?: string;
   yearsOfExperience: number;
   availabilitySlots: IAvailabilitySlot[];
   consultationDurationMinutes: number;
@@ -60,6 +61,7 @@ const DoctorSchema = new Schema<IDoctor>(
     bio: { type: String, default: '' },
     profilePhoto: { type: String },
     qualifications: { type: [String], default: [] },
+    degreeImage: { type: String },
     yearsOfExperience: { type: Number, default: 0 },
     availabilitySlots: { type: [AvailabilitySlotSchema], default: [] },
     consultationDurationMinutes: { type: Number, default: 30 },

@@ -13,6 +13,7 @@ import {
   Person as PersonIcon,
   Save as SaveIcon,
   Add as AddIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
@@ -42,6 +43,7 @@ const DoctorProfile: React.FC = () => {
     yearsOfExperience: 0,
     consultationDurationMinutes: 30,
     qualifications: [] as string[],
+    degreeImage: '',
   });
   
   const [newQual, setNewQual] = useState('');
@@ -54,6 +56,7 @@ const DoctorProfile: React.FC = () => {
         yearsOfExperience: doctor.yearsOfExperience || 0,
         consultationDurationMinutes: doctor.consultationDurationMinutes || 30,
         qualifications: doctor.qualifications || [],
+        degreeImage: doctor.degreeImage || '',
       });
     }
   }, [doctor]);
@@ -83,6 +86,13 @@ const DoctorProfile: React.FC = () => {
     setLoading(true);
     setSuccess('');
     setError('');
+
+    if (!formData.degreeImage) {
+      setError('Uploading a degree image is mandatory.');
+      setLoading(false);
+      return;
+    }
+
     try {
       await authApi.updateDoctorProfile(formData);
       setSuccess('Profile updated successfully!');
@@ -207,6 +217,48 @@ const DoctorProfile: React.FC = () => {
                     <Typography variant="body2" color="text.secondary">
                       No qualifications added yet.
                     </Typography>
+                  )}
+                </Box>
+              </Grid>
+
+              <Grid size={{ xs: 12 }}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                  Degree Image (Mandatory)
+                </Typography>
+                
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-start' }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<CloudUploadIcon />}
+                  >
+                    Upload Degree Image
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            handleChange('degreeImage', reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </Button>
+                  
+                  {formData.degreeImage && (
+                    <Box sx={{ mt: 1, border: '1px solid #ccc', borderRadius: 1, p: 1, display: 'inline-block' }}>
+                      <img 
+                        src={formData.degreeImage} 
+                        alt="Degree Preview" 
+                        style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain' }} 
+                      />
+                    </Box>
                   )}
                 </Box>
               </Grid>
