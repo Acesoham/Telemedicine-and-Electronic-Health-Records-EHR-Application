@@ -97,19 +97,12 @@ const Navbar: React.FC = () => {
       <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 72 }}>
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 10,
-            background: 'linear-gradient(135deg, #1565C0, #00897B)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(21,101,192,0.35)',
-          }}>
-            <span style={{ fontSize: 20 }}>🏥</span>
-          </div>
+          <img src="/MediVaultLogo.png" alt="MediVault Logo" style={{ width: 38, height: 38 }} />
           <span style={{ fontWeight: 800, fontSize: '1.2rem', color: scrolled ? '#1A2332' : 'white', letterSpacing: '-0.02em' }}>
             MediVault
           </span>
         </div>
-
+          
         {/* Desktop Links */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="desktop-nav">
           {navLinks.map(link => (
@@ -696,11 +689,7 @@ const Footer: React.FC = () => (
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, justifyContent: 'space-between', marginBottom: 40 }}>
         <div style={{ maxWidth: 280 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: 'linear-gradient(135deg, #1565C0, #00897B)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-            }}>🏥</div>
+            <img src="/MediVaultLogo.png" alt="MediVault Logo" style={{ width: 34, height: 34 }} />
             <span style={{ fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>MediVault</span>
           </div>
           <p style={{ lineHeight: 1.65, fontSize: '0.9rem', margin: 0 }}>
