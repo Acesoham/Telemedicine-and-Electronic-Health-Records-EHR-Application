@@ -8,6 +8,8 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 
 // Lazy-loaded pages for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
+const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
 const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'));
@@ -84,6 +86,10 @@ const App: React.FC = () => {
             <Routes>
               {/* Root */}
               <Route path="/" element={<RootRedirect />} />
+
+              {/* Public pages */}
+              <Route path="/features" element={<FeaturesPage />} />
+              <Route path="/contact" element={<ContactPage />} />
 
               {/* Auth */}
               <Route path="/login" element={<LoginPage />} />

@@ -55,12 +55,12 @@ const Navbar: React.FC = () => {
   }, []);
 
   const navLinks = [
-    { label: 'Home', href: '#' },
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how-it-works' },
-    { label: 'For Doctors', href: '#for-doctors' },
-    { label: 'Testimonials', href: '#testimonials' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Home', href: '#', to: null },
+    { label: 'Features', href: null, to: '/features' },
+    { label: 'How it works', href: '#how-it-works', to: null },
+    { label: 'For Doctors', href: '#for-doctors', to: null },
+    { label: 'Testimonials', href: '#testimonials', to: null },
+    { label: 'Contact', href: null, to: '/contact' },
   ];
 
   return (
@@ -82,18 +82,24 @@ const Navbar: React.FC = () => {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 28 }} className="desktop-nav">
           {navLinks.map((link, i) => (
-            <a key={link.label} href={link.href} style={{
-              color: i === 0 ? '#1565C0' : '#64748B',
-              textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem',
-              transition: 'color 0.2s',
-              borderBottom: i === 0 ? '2px solid #1565C0' : '2px solid transparent',
-              paddingBottom: 2,
-            }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#1565C0')}
-              onMouseLeave={e => (e.currentTarget.style.color = i === 0 ? '#1565C0' : '#64748B')}
-            >
-              {link.label}
-            </a>
+            link.to
+              ? <RouterLink key={link.label} to={link.to} style={{
+                  color: '#64748B', textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem',
+                  transition: 'color 0.2s', borderBottom: '2px solid transparent', paddingBottom: 2,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#1565C0')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#64748B')}
+              >{link.label}</RouterLink>
+              : <a key={link.label} href={link.href!} style={{
+                  color: i === 0 ? '#1565C0' : '#64748B',
+                  textDecoration: 'none', fontWeight: 500, fontSize: '0.9rem',
+                  transition: 'color 0.2s',
+                  borderBottom: i === 0 ? '2px solid #1565C0' : '2px solid transparent',
+                  paddingBottom: 2,
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#1565C0')}
+                onMouseLeave={e => (e.currentTarget.style.color = i === 0 ? '#1565C0' : '#64748B')}
+              >{link.label}</a>
           ))}
         </div>
 
@@ -124,7 +130,9 @@ const Navbar: React.FC = () => {
       {menuOpen && (
         <div style={{ background: 'white', borderTop: '1px solid #E2E8F0', padding: '16px 24px 24px' }}>
           {navLinks.map(link => (
-            <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px 0', color: '#1A2332', textDecoration: 'none', fontWeight: 500, fontSize: '1rem', borderBottom: '1px solid #F1F5F9' }}>{link.label}</a>
+            link.to
+              ? <RouterLink key={link.label} to={link.to} onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px 0', color: '#1A2332', textDecoration: 'none', fontWeight: 500, fontSize: '1rem', borderBottom: '1px solid #F1F5F9' }}>{link.label}</RouterLink>
+              : <a key={link.label} href={link.href!} onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '12px 0', color: '#1A2332', textDecoration: 'none', fontWeight: 500, fontSize: '1rem', borderBottom: '1px solid #F1F5F9' }}>{link.label}</a>
           ))}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
             <RouterLink to="/login" onClick={() => setMenuOpen(false)} style={{ textAlign: 'center', padding: '12px', borderRadius: 8, border: '1.5px solid #1565C0', color: '#1565C0', textDecoration: 'none', fontWeight: 600 }}>Sign in</RouterLink>
