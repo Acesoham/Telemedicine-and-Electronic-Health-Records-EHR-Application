@@ -6,5 +6,5 @@ logs
 uploads
 coverage
 *.log
-.check-db.js
+check-db.js
 .ts-node-dev.ts-node-dev.js
