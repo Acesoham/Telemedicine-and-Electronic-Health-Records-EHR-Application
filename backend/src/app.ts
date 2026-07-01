@@ -12,6 +12,7 @@ import auditRoutes from './routes/audit.routes';
 import appointmentRoutes from './routes/appointment.routes';
 import prescriptionRoutes from './routes/prescription.routes';
 import availabilityRoutes from './routes/availability.routes';
+import recordingRoutes from './routes/recording.routes';
 
 const createApp = (): Application => {
   const app = express();
@@ -22,6 +23,7 @@ const createApp = (): Application => {
   app.use(
     helmet({
       crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: false,
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -71,8 +73,8 @@ const createApp = (): Application => {
   // ──────────────────────────────────────
   // Parsing & Logging
   // ──────────────────────────────────────
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(express.json({ limit: '100mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100mb' }));
   app.use(cookieParser());
   app.use(httpLogger);
 
@@ -101,6 +103,7 @@ const createApp = (): Application => {
   app.use('/api/appointments', appointmentRoutes);
   app.use('/api/prescriptions', prescriptionRoutes);
   app.use('/api/availability', availabilityRoutes);
+  app.use('/api/recordings', recordingRoutes);
   // /api/doctors is handled inside appointmentRoutes
 
   // ──────────────────────────────────────

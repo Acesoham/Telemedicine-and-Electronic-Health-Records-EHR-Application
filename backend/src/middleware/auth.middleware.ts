@@ -7,9 +7,16 @@ import { logger } from '../utils/logger';
  * Authenticates request via Bearer token in Authorization header
  */
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers.authorization;
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (req.query.token && typeof req.query.token === 'string') {
+    token = req.query.token;
+  }
+
+  if (!token) {
     const response: ApiResponse = {
       success: false,
       message: 'Authentication required. Please provide a valid token.',
@@ -17,8 +24,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     res.status(401).json(response);
     return;
   }
-
-  const token = authHeader.substring(7); // Remove 'Bearer '
 
   try {
     const payload = verifyAccessToken(token);

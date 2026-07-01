@@ -126,6 +126,24 @@ export interface Prescription {
   createdAt: string;
 }
 
+export type RecordingStatus = 'RECORDING' | 'COMPLETED' | 'FAILED';
+
+export interface Recording {
+  _id: string;
+  appointmentId: string | Appointment;
+  doctorId: string | DoctorProfile;
+  patientId: string | PatientProfile;
+  startedAt: string;
+  endedAt?: string;
+  durationSeconds?: number;
+  status: RecordingStatus;
+  recordingDataUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AuditLog {
   _id: string;
   userId?: string;

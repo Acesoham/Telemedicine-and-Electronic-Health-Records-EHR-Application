@@ -212,6 +212,45 @@ export const availabilityApi = {
 };
 
 // ──────────────────────────────────────────────────────────────
+// Recordings API
+// ──────────────────────────────────────────────────────────────
+export const recordingsApi = {
+  /** Doctor: start a recording for a given appointment */
+  start: (appointmentId: string) =>
+    apiClient.post<ApiResponse>('/recordings/start', { appointmentId }),
+
+  /** Doctor: stop and save a recording with its data */
+  stop: (
+    recordingId: string,
+    data: {
+      recordingDataUrl?: string;
+      durationSeconds?: number;
+      fileSize?: number;
+      mimeType?: string;
+    },
+  ) => apiClient.put<ApiResponse>(`/recordings/${recordingId}/stop`, data, { timeout: 120000 }),
+
+  /** Doctor: list all their recordings */
+  getAll: () => apiClient.get<ApiResponse>('/recordings'),
+
+  /** Doctor: fetch a single recording by ID */
+  getById: (id: string) => apiClient.get<ApiResponse>(`/recordings/${id}`),
+
+  /** Doctor: generate a direct streaming URL for the video element */
+  getStreamUrl: (id: string) => {
+    const token = localStorage.getItem('medivault_access_token');
+    return `${API_BASE_URL}/recordings/${id}/stream?token=${token}`;
+  },
+
+  /** Doctor: stream recording as raw video bytes (use responseType:'blob') */
+  stream: (id: string) =>
+    apiClient.get(`/recordings/${id}/stream`, { responseType: 'blob', timeout: 120000 }),
+
+  /** Doctor: delete a recording */
+  delete: (id: string) => apiClient.delete<ApiResponse>(`/recordings/${id}`),
+};
+
+// ──────────────────────────────────────────────────────────────
 // Admin API
 // ──────────────────────────────────────────────────────────────
 export const adminApi = {
