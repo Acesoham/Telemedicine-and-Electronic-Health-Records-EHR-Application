@@ -161,16 +161,24 @@ export const streamRecording = async (req: Request, res: Response, next: NextFun
     if (!recording.recordingDataUrl)
       throw new AppError('No video data stored for this recording', 404);
 
-    // data URL format: "data:<mimeType>;base64,<base64data>"
-    const commaIdx = recording.recordingDataUrl.indexOf(',');
-    if (commaIdx === -1) throw new AppError('Malformed recording data', 500);
+    // Data URL format: "data:<mimeType>;base64,<base64data>"
+    // IMPORTANT: mimeType may contain codec params with commas, e.g.:
+    //   data:video/webm;codecs=vp8,opus;base64,<data>
+    // Using indexOf(',') would match the comma inside "vp8,opus" — not the
+    // base64 separator — producing garbage bytes. We must search for ";base64,"
+    // as the correct delimiter.
+    const BASE64_MARKER = ';base64,';
+    const markerIdx = recording.recordingDataUrl.indexOf(BASE64_MARKER);
+    if (markerIdx === -1) throw new AppError('Malformed recording data: missing ;base64, marker', 500);
 
-    const header = recording.recordingDataUrl.slice(0, commaIdx);      // "data:video/webm;base64"
-    const base64Data = recording.recordingDataUrl.slice(commaIdx + 1); // "<base64>"
-    let mimeType = header.match(/:(.*?);/)?.[1] ?? recording.mimeType ?? 'video/webm';
-    
-    // Browsers often reject `<video src>` if the Content-Type header contains codec info
-    // e.g. "video/webm;codecs=vp9,opus". We must strip it down to just "video/webm".
+    const header = recording.recordingDataUrl.slice(0, markerIdx); // "data:video/webm;codecs=vp8,opus"
+    const base64Data = recording.recordingDataUrl.slice(markerIdx + BASE64_MARKER.length); // "<base64>"
+
+    // Extract just the base MIME type (no codec params) from the header.
+    // e.g. "data:video/webm;codecs=vp8,opus" → "video/webm"
+    let mimeType = header.match(/^data:([^;]+)/)?.[1] ?? recording.mimeType ?? 'video/webm';
+
+    // Strip any remaining codec suffix just in case
     if (mimeType.includes(';')) {
       mimeType = mimeType.split(';')[0];
     }

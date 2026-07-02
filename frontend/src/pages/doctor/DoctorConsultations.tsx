@@ -280,8 +280,7 @@ const RecordingCard: React.FC<{
   onPlay: (rec: Recording) => void;
   onDelete: (id: string) => void;
   deleting: string | null;
-  loadingPlay: string | null;
-}> = ({ rec, onPlay, onDelete, deleting, loadingPlay }) => {
+}> = ({ rec, onPlay, onDelete, deleting }) => {
   const patient = typeof rec.patientId === 'object' ? rec.patientId as PatientProfile : null;
   const patientName = patient ? `${patient.firstName} ${patient.lastName}` : 'Patient';
   const appt = typeof rec.appointmentId === 'object' ? rec.appointmentId as Appointment : null;
@@ -386,17 +385,15 @@ const RecordingCard: React.FC<{
               <Button
                 variant="contained"
                 size="small"
-                startIcon={loadingPlay === rec._id ? <CircularProgress size={14} sx={{ color: 'white' }} /> : <PlayIcon />}
+                startIcon={<PlayIcon />}
                 onClick={() => onPlay(rec)}
-                disabled={loadingPlay === rec._id}
                 sx={{
                   background: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
                   fontWeight: 700,
                   '&:hover': { background: 'linear-gradient(135deg, #6d28d9, #5b21b6)' },
-                  '&:disabled': { background: 'rgba(124,58,237,0.4)', color: 'white' },
                 }}
               >
-                {loadingPlay === rec._id ? 'Loading…' : 'Play'}
+                Play
               </Button>
             )}
             <IconButton
@@ -421,10 +418,13 @@ const RecordingsTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [playingRec, setPlayingRec] = useState<Recording | null>(null);
-  const [loadingPlay, setLoadingPlay] = useState<string | null>(null);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  // streamUrl: direct authenticated URL to the backend stream endpoint.
+  // Using a direct HTTP URL (not a blob URL) lets the browser send native
+  // HTTP Range requests (206 Partial Content), which is required for the
+  // FFmpeg demuxer to open the video stream correctly.
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [playError, setPlayError] = useState('');
-  const [muted, setMuted] = useState(true); // start muted for autoplay policy
+  const [muted, setMuted] = useState(true);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const loadRecordings = useCallback(async () => {
@@ -441,32 +441,28 @@ const RecordingsTab: React.FC = () => {
 
   useEffect(() => { loadRecordings(); }, [loadRecordings]);
 
-  // Cleanup blob URL when dialog closes
-  // Cleanup when dialog closes
   const handleClose = useCallback(() => {
-    setBlobUrl(null);
+    setStreamUrl(null);
     setPlayingRec(null);
     setPlayError('');
     setMuted(true);
+    // Pause & reset the video element so it stops buffering in the background
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = '';
+      videoRef.current.load();
+    }
   }, []);
 
-  const handlePlay = async (rec: Recording) => {
+  const handlePlay = (rec: Recording) => {
     setPlayError('');
-    setLoadingPlay(rec._id);
     setPlayingRec(rec);
-    setBlobUrl(null);
-    try {
-      const res = await recordingsApi.stream(rec._id);
-      const videoBlob: Blob = res.data;
-      if (!videoBlob || videoBlob.size === 0) throw new Error('Received empty video data.');
-      const url = URL.createObjectURL(videoBlob);
-      setBlobUrl(url);
-    } catch (err) {
-      console.error('Failed to load recording:', err);
-      setPlayError(err instanceof Error ? err.message : 'Failed to load recording.');
-    } finally {
-      setLoadingPlay(null);
-    }
+    // Build the direct stream URL with the auth token as a query param.
+    // The backend auth middleware accepts ?token= so no extra request needed.
+    // Using a direct URL instead of a blob URL lets the browser issue proper
+    // HTTP Range requests, which is what the FFmpeg demuxer requires.
+    const url = recordingsApi.getStreamUrl(rec._id);
+    setStreamUrl(url);
   };
 
   const handleDelete = async (id: string) => {
@@ -535,7 +531,6 @@ const RecordingsTab: React.FC = () => {
           onPlay={handlePlay}
           onDelete={handleDelete}
           deleting={deleting}
-          loadingPlay={loadingPlay}
         />
       ))}
 
@@ -558,21 +553,18 @@ const RecordingsTab: React.FC = () => {
               <Typography color="error" sx={{ textAlign: 'center' }}>{playError}</Typography>
               <Button variant="outlined" color="error" onClick={handleClose}>Close</Button>
             </Box>
-          ) : blobUrl ? (
+          ) : streamUrl ? (
             <Box sx={{ position: 'relative' }}>
               <video
-                key={blobUrl}
+                key={streamUrl}
                 ref={videoRef}
-                src={blobUrl}
-                crossOrigin="anonymous"
+                src={streamUrl}
                 controls
                 muted={muted}
                 playsInline
-                preload="auto"
+                preload="metadata"
                 onLoadedMetadata={() => {
-                  // Auto-play as soon as metadata is ready
                   videoRef.current?.play().catch(() => {
-                    // If muted autoplay fails somehow, show controls
                     console.warn('Autoplay prevented');
                   });
                 }}
@@ -582,7 +574,6 @@ const RecordingsTab: React.FC = () => {
                 }}
                 style={{ width: '100%', borderRadius: 8, maxHeight: '65vh', display: 'block', background: '#000' }}
               />
-              {/* Unmute button — shown when muted */}
               {muted && (
                 <Button
                   size="small"
@@ -609,10 +600,10 @@ const RecordingsTab: React.FC = () => {
           <Button onClick={handleClose} sx={{ color: 'rgba(255,255,255,0.7)' }}>
             Close
           </Button>
-          {blobUrl && playingRec && (
+          {streamUrl && playingRec && (
             <Button
               variant="contained"
-              href={blobUrl}
+              href={streamUrl}
               download={`recording-${playingRec._id}.${playingRec.mimeType?.includes('mp4') ? 'mp4' : 'webm'}`}
               sx={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)', fontWeight: 700 }}
             >
