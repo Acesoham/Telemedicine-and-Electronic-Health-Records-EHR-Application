@@ -13,6 +13,7 @@ import appointmentRoutes from './routes/appointment.routes';
 import prescriptionRoutes from './routes/prescription.routes';
 import availabilityRoutes from './routes/availability.routes';
 import recordingRoutes from './routes/recording.routes';
+import adminRoutes from './routes/admin.routes';
 
 const createApp = (): Application => {
   const app = express();
@@ -104,6 +105,7 @@ const createApp = (): Application => {
   app.use('/api/prescriptions', prescriptionRoutes);
   app.use('/api/availability', availabilityRoutes);
   app.use('/api/recordings', recordingRoutes);
+  app.use('/api/admin', adminRoutes);
   // /api/doctors is handled inside appointmentRoutes
 
   // ──────────────────────────────────────

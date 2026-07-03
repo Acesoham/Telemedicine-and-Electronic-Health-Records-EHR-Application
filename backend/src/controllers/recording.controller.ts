@@ -108,15 +108,16 @@ export const listRecordings = async (req: Request, res: Response, next: NextFunc
 // ── Get a single recording ─────────────────────────────────────────────────────
 export const getRecording = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const doctor = await Doctor.findOne({ userId: req.user!.userId });
-    if (!doctor) throw new AppError('Doctor profile not found', 404);
+    const isAdmin = req.user?.role === 'ADMIN';
+    const doctor = !isAdmin ? await Doctor.findOne({ userId: req.user!.userId }) : null;
+    if (!isAdmin && !doctor) throw new AppError('Doctor profile not found', 404);
 
     const recording = await Recording.findById(req.params.id)
       .populate('appointmentId', 'scheduledAt chiefComplaint durationMinutes')
       .populate('patientId', 'firstName lastName gender');
 
     if (!recording) throw new AppError('Recording not found', 404);
-    if (recording.doctorId.toString() !== doctor._id.toString())
+    if (!isAdmin && recording.doctorId.toString() !== doctor!._id.toString())
       throw new AppError('Access denied', 403);
 
     res.json({ success: true, data: recording });
@@ -128,12 +129,13 @@ export const getRecording = async (req: Request, res: Response, next: NextFuncti
 // ── Delete a recording ────────────────────────────────────────────────────────
 export const deleteRecording = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const doctor = await Doctor.findOne({ userId: req.user!.userId });
-    if (!doctor) throw new AppError('Doctor profile not found', 404);
+    const isAdmin = req.user?.role === 'ADMIN';
+    const doctor = !isAdmin ? await Doctor.findOne({ userId: req.user!.userId }) : null;
+    if (!isAdmin && !doctor) throw new AppError('Doctor profile not found', 404);
 
     const recording = await Recording.findById(req.params.id);
     if (!recording) throw new AppError('Recording not found', 404);
-    if (recording.doctorId.toString() !== doctor._id.toString())
+    if (!isAdmin && recording.doctorId.toString() !== doctor!._id.toString())
       throw new AppError('Access denied', 403);
 
     await recording.deleteOne();
@@ -148,15 +150,16 @@ export const deleteRecording = async (req: Request, res: Response, next: NextFun
 // (and Axios with responseType:'blob') can play/download it natively.
 export const streamRecording = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const doctor = await Doctor.findOne({ userId: req.user!.userId });
-    if (!doctor) throw new AppError('Doctor profile not found', 404);
+    const isAdmin = req.user?.role === 'ADMIN';
+    const doctor = !isAdmin ? await Doctor.findOne({ userId: req.user!.userId }) : null;
+    if (!isAdmin && !doctor) throw new AppError('Doctor profile not found', 404);
 
     // Only select the fields we need — avoids loading everything
     const recording = await Recording.findById(req.params.id)
       .select('doctorId recordingDataUrl mimeType');
 
     if (!recording) throw new AppError('Recording not found', 404);
-    if (recording.doctorId.toString() !== doctor._id.toString())
+    if (!isAdmin && recording.doctorId.toString() !== doctor!._id.toString())
       throw new AppError('Access denied', 403);
     if (!recording.recordingDataUrl)
       throw new AppError('No video data stored for this recording', 404);

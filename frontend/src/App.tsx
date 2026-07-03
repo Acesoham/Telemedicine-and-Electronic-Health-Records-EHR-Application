@@ -26,17 +26,11 @@ const DoctorPatientsPage = lazy(() => import('./pages/doctor/DoctorPatients'));
 const DoctorConsultationsPage = lazy(() => import('./pages/doctor/DoctorConsultations'));
 const ConsultationRoom = lazy(() => import('./pages/shared/ConsultationRoom'));
 
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
-const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'));
-
-// Stub pages (fully implemented in later phases)
-const {
-  AdminUsers,
-  AdminAnalytics,
-} = {
-  AdminUsers: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminUsers }))),
-  AdminAnalytics: lazy(() => import('./pages/StubPages').then(m => ({ default: m.AdminAnalytics }))),
-};
+const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminAuditLogs  = lazy(() => import('./pages/admin/AdminAuditLogs'));
+const AdminUsers      = lazy(() => import('./pages/admin/AdminUsers'));
+const AdminAnalytics  = lazy(() => import('./pages/admin/AdminAnalytics'));
+const AdminRecordings = lazy(() => import('./pages/admin/AdminRecordings'));
 
 const LoadingFallback: React.FC = () => (
   <Box
@@ -138,11 +132,12 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute allowedRoles={['ADMIN']}>
                     <Routes>
-                      <Route path="dashboard" element={<AdminDashboard />} />
-                      <Route path="users" element={<AdminUsers />} />
-                      <Route path="audit-logs" element={<AdminAuditLogs />} />
-                      <Route path="analytics" element={<AdminAnalytics />} />
-                      <Route path="*" element={<Navigate to="dashboard" replace />} />
+                      <Route path="dashboard"  element={<AdminDashboard />} />
+                      <Route path="users"       element={<AdminUsers />} />
+                      <Route path="audit-logs"  element={<AdminAuditLogs />} />
+                      <Route path="analytics"   element={<AdminAnalytics />} />
+                      <Route path="recordings"  element={<AdminRecordings />} />
+                      <Route path="*"           element={<Navigate to="dashboard" replace />} />
                     </Routes>
                   </ProtectedRoute>
                 }

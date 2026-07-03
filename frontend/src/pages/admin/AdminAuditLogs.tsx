@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -14,13 +15,11 @@ import {
   Chip,
   TablePagination,
 } from '@mui/material';
-import DashboardLayout from '../../components/layout/DashboardLayout';
-import api from '../../services/api';
-
-import { NavItem } from '../../components/layout/DashboardLayout';
+import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
+import { adminApi } from '../../services/api';
 import {
-  Dashboard as DashboardIcon, People, AdminPanelSettings,
-  BarChart, Security, EventNote, HealthAndSafety,
+  Dashboard as DashboardIcon, People, Security, BarChart,
+  VideoCall,
 } from '@mui/icons-material';
 
 const navItems: NavItem[] = [
@@ -28,6 +27,7 @@ const navItems: NavItem[] = [
   { label: 'User Management', path: '/admin/users', icon: <People /> },
   { label: 'Audit Logs', path: '/admin/audit-logs', icon: <Security /> },
   { label: 'Analytics', path: '/admin/analytics', icon: <BarChart /> },
+  { label: 'Recordings', path: '/admin/recordings', icon: <VideoCall /> },
 ];
 
 const AdminAuditLogs: React.FC = () => {
@@ -42,9 +42,10 @@ const AdminAuditLogs: React.FC = () => {
     const fetchLogs = async () => {
       setLoading(true);
       try {
-        const response = await api.get(`/audit?page=${page + 1}&limit=${rowsPerPage}`);
-        setLogs(response.data.data.logs);
-        setTotal(response.data.data.pagination.total);
+        const response = await adminApi.getAuditLogs({ page: page + 1, limit: rowsPerPage });
+        const resData = response.data.data as any;
+        setLogs(resData?.logs || []);
+        setTotal(resData?.pagination?.total || 0);
       } catch (err: any) {
         setError(err.response?.data?.message || 'Failed to fetch audit logs');
       } finally {

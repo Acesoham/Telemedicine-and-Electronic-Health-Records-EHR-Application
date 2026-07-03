@@ -265,4 +265,6 @@ export const adminApi = {
     apiClient.get<ApiResponse>('/admin/doctors', { params }),
   verifyDoctor: (doctorId: string) =>
     apiClient.put<ApiResponse>(`/admin/doctors/${doctorId}/verify`),
+  getRecordings: (params?: Record<string, unknown>) =>
+    apiClient.get<ApiResponse>('/admin/recordings', { params }),
 };

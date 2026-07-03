@@ -23,13 +23,13 @@ router.post('/start', authorize('DOCTOR'), startRecording);
 router.get('/', authorize('DOCTOR'), listRecordings);
 
 /** GET /api/recordings/:id — fetch a single recording (with data URL) */
-router.get('/:id', authorize('DOCTOR'), getRecording);
+router.get('/:id', authorize('DOCTOR', 'ADMIN'), getRecording);
 
 /** PUT /api/recordings/:id/stop — finalise a recording and save data */
 router.put('/:id/stop', authorize('DOCTOR'), stopRecording);
 
 /** GET /api/recordings/:id/stream — stream raw video bytes with proper Content-Type */
-router.get('/:id/stream', authorize('DOCTOR'), streamRecording);
+router.get('/:id/stream', authorize('DOCTOR', 'ADMIN'), streamRecording);
 
 /** DELETE /api/recordings/:id — delete a recording */
 router.delete('/:id', authorize('DOCTOR'), deleteRecording);
