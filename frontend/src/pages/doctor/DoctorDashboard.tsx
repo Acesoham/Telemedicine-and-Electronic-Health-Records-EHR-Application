@@ -101,6 +101,11 @@ const DoctorDashboard: React.FC = () => {
 
   return (
     <DashboardLayout navItems={navItems} title="Doctor Dashboard">
+      {(doctorProfile as any)?.isVerified === false && (
+        <Alert severity="warning" sx={{ mb: 3, fontWeight: 600 }}>
+          Your account is pending verification. Please ensure you have uploaded your degree in your profile. You won't be visible to patients or able to accept appointments until verified by an Admin.
+        </Alert>
+      )}
       {/* Welcome */}
       <Box
         sx={{

@@ -56,6 +56,7 @@ export interface DoctorProfile {
   consultationDurationMinutes: number;
   availabilitySlots: AvailabilitySlot[];
   profilePhoto?: string;
+  degreeImage?: string;
 }
 
 export interface AvailabilitySlot {

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Appointment } from '../modules/appointments/appointment.model';
 import { Doctor } from '../modules/auth/doctor.model';
 import { Patient } from '../modules/auth/patient.model';
+import { User } from '../modules/auth/user.model';
 import { AppError } from '../middleware/error.middleware';
 import { CreateAppointmentInput } from '../validators/appointment.validator';
 
@@ -15,9 +16,17 @@ export class AppointmentService {
     const patient = await Patient.findOne({ userId: patientUserId });
     if (!patient) throw new AppError('Patient profile not found', 404);
 
-    // Resolve doctor
     const doctor = await Doctor.findById(input.doctorId);
     if (!doctor) throw new AppError('Doctor not found', 404);
+    
+    // Check if doctor's account is suspended
+    const doctorUser = await User.findById(doctor.userId);
+    if (!doctorUser || !doctorUser.isActive) {
+      throw new AppError('This doctor is currently suspended and cannot accept appointments.', 403);
+    }
+
+    if (!doctor.isVerified)
+      throw new AppError('This doctor is pending verification and cannot accept appointments.', 403);
     if (!doctor.isAcceptingAppointments)
       throw new AppError('This doctor is not accepting appointments right now', 409);
 
@@ -194,7 +203,14 @@ export class AppointmentService {
     page: number;
     limit: number;
   }) {
-    const query: Record<string, unknown> = {};
+    // Find all active doctors in the User collection
+    const activeDoctorUsers = await User.find({ role: 'DOCTOR', isActive: true }).select('_id').lean();
+    const activeDoctorIds = activeDoctorUsers.map(u => u._id);
+
+    const query: Record<string, unknown> = { 
+      isVerified: true,
+      userId: { $in: activeDoctorIds }
+    };
     if (filters.search) {
       query.$or = [
         { firstName: { $regex: filters.search, $options: 'i' } },

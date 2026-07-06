@@ -33,8 +33,10 @@ type User = {
   createdAt: string;
   patientProfile?: { firstName: string; lastName: string };
   doctorProfile?: {
+    _id?: string;
     firstName: string; lastName: string;
     specialization?: string; isVerified?: boolean;
+    qualifications?: string[]; degreeImage?: string;
   };
 };
 
@@ -74,7 +76,12 @@ const SkeletonRow = () => (
 );
 
 // User Detail Dialog — uses only Box, no Grid to avoid MUI v9 grid crashes
-const UserDetailDialog: React.FC<{ user: User | null; onClose: () => void }> = ({ user, onClose }) => {
+const UserDetailDialog: React.FC<{ 
+  user: User | null; 
+  onClose: () => void;
+  onVerify?: (doctorId: string, userId: string) => void;
+  isVerifying?: boolean;
+}> = ({ user, onClose, onVerify, isVerifying }) => {
   if (!user) return null;
   return (
     <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
@@ -126,11 +133,42 @@ const UserDetailDialog: React.FC<{ user: User | null; onClose: () => void }> = (
                   />
                 </Box>
               </Box>
+              {user.doctorProfile.qualifications && user.doctorProfile.qualifications.length > 0 && (
+                <Box sx={{ flex: '1 1 100%', mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>QUALIFICATIONS</Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
+                    {user.doctorProfile.qualifications.map((q, i) => (
+                      <Chip key={i} label={q} size="small" variant="outlined" />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              {user.doctorProfile.degreeImage && (
+                <Box sx={{ flex: '1 1 100%', mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>DEGREE IMAGE</Typography>
+                  <Box sx={{ mt: 1, border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 1, display: 'inline-block' }}>
+                    <img src={user.doctorProfile.degreeImage} alt="Degree" style={{ maxHeight: 200, maxWidth: '100%', objectFit: 'contain' }} />
+                  </Box>
+                </Box>
+              )}
             </>
           )}
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
+        {user.role === 'DOCTOR' && !user.doctorProfile?.isVerified && onVerify && (
+          <Button 
+            variant="contained" 
+            color="success" 
+            onClick={() => {
+              if (user.doctorProfile?._id) onVerify(user.doctorProfile._id, user._id);
+            }}
+            disabled={isVerifying}
+            startIcon={isVerifying ? <CircularProgress size={16} color="inherit" /> : <Verified fontSize="small" />}
+          >
+            Verify Doctor
+          </Button>
+        )}
         <Button onClick={onClose} variant="outlined">Close</Button>
       </DialogActions>
     </Dialog>
@@ -187,12 +225,15 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const handleVerifyDoctor = async (userId: string) => {
+  const handleVerifyDoctor = async (doctorId: string, userId: string) => {
     setActionLoading(userId);
     try {
-      await adminApi.verifyDoctor(userId);
+      await adminApi.verifyDoctor(doctorId);
       setSuccessMsg('Doctor verified successfully');
       fetchUsers();
+      if (detailUser?._id === userId) {
+        setDetailUser(prev => prev ? { ...prev, doctorProfile: { ...prev.doctorProfile!, isVerified: true } } : null);
+      }
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to verify doctor');
@@ -348,7 +389,7 @@ const AdminUsers: React.FC = () => {
                           </Tooltip>
                           {u.role === 'DOCTOR' && !u.doctorProfile?.isVerified && (
                             <Tooltip title="Verify Doctor">
-                              <IconButton size="small" color="success" onClick={() => handleVerifyDoctor(u._id)} disabled={actionLoading === u._id}>
+                              <IconButton size="small" color="success" onClick={() => { if (u.doctorProfile?._id) handleVerifyDoctor(u.doctorProfile._id, u._id); }} disabled={actionLoading === u._id}>
                                 {actionLoading === u._id ? <CircularProgress size={16} /> : <Verified fontSize="small" />}
                               </IconButton>
                             </Tooltip>
@@ -384,7 +425,12 @@ const AdminUsers: React.FC = () => {
         )}
       </Card>
 
-      <UserDetailDialog user={detailUser} onClose={() => setDetailUser(null)} />
+      <UserDetailDialog 
+        user={detailUser} 
+        onClose={() => setDetailUser(null)}
+        onVerify={handleVerifyDoctor}
+        isVerifying={actionLoading === detailUser?._id}
+      />
     </DashboardLayout>
   );
 };

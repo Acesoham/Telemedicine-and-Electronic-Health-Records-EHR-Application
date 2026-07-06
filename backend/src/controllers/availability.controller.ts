@@ -28,6 +28,7 @@ export const updateMyAvailability = async (req: Request, res: Response, next: Ne
   try {
     const doctor = await Doctor.findOne({ userId: req.user!.userId });
     if (!doctor) throw new AppError('Doctor profile not found', 404);
+    if (!doctor.isVerified) throw new AppError('You cannot update availability until your profile is verified by an admin', 403);
 
     const { availabilitySlots, consultationDurationMinutes, isAcceptingAppointments } = req.body;
 
