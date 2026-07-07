@@ -135,11 +135,11 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div style={{
+    <div className="auth-wrapper" style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'Inter, Segoe UI, sans-serif', background: '#EAEFF5', padding: '24px'
     }}>
-      <div style={{
+      <div className="auth-container" style={{
         display: 'flex', width: '100%', maxWidth: 1100, minHeight: 720,
         background: 'white', borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
         overflow: 'hidden', padding: '12px'
@@ -205,7 +205,7 @@ const RegisterPage: React.FC = () => {
         </div>
 
         {/* ── Right Panel (Form) ──────────────────────────────────────────────── */}
-        <div style={{
+        <div className="auth-right-panel" style={{
           flex: 1, display: 'flex', flexDirection: 'column',
           justifyContent: 'center', alignItems: 'center',
           background: 'white', padding: '48px 48px', position: 'relative', overflowY: 'auto'
@@ -311,6 +311,12 @@ const RegisterPage: React.FC = () => {
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (min-width: 1024px) { .register-left-panel { display: flex !important; } .mobile-logo-reg { display: none !important; } .mobile-only-link { display: none !important; } }
         @media (max-width: 1023px) { .register-left-panel { display: none !important; } .mobile-logo-reg { display: flex !important; } .mobile-only-link { display: block !important; } }
+        @media (max-width: 640px) {
+          .auth-wrapper { padding: 0 !important; background: white !important; }
+          .auth-container { border-radius: 0 !important; padding: 0 !important; min-height: 100vh !important; box-shadow: none !important; }
+          .auth-right-panel { padding: 80px 24px 32px !important; justify-content: flex-start !important; }
+          .mobile-logo-reg { top: 20px !important; left: 24px !important; }
+        }
       `}</style>
     </div>
   );

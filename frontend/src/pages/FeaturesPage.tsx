@@ -67,14 +67,16 @@ const Navbar: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <RouterLink to="/login" style={{
-            padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent',
-            textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
-          }}>Sign in</RouterLink>
-          <RouterLink to="/register" style={{
-            padding: '10px 22px', borderRadius: 8, background: '#1565C0',
-            color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
-          }}>Get Started Free</RouterLink>
+          <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <RouterLink to="/login" style={{
+              padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent',
+              textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
+            }}>Sign in</RouterLink>
+            <RouterLink to="/register" style={{
+              padding: '10px 22px', borderRadius: 8, background: '#1565C0',
+              color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
+            }}>Get Started Free</RouterLink>
+          </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className="hamburger-btn" style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }} aria-label="Toggle menu">
             <span style={{ fontSize: 24 }}>{menuOpen ? '✕' : '☰'}</span>
           </button>
@@ -247,7 +249,7 @@ const CoreFeaturesSection: React.FC = () => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 28,
         }}>
           {coreFeatures.map((f, i) => (
@@ -435,11 +437,12 @@ const ComparisonSection: React.FC = () => {
         </div>
 
         <div style={{
-          border: '1.5px solid #E2E8F0', borderRadius: 20, overflow: 'hidden',
+          border: '1.5px solid #E2E8F0', borderRadius: 20, overflowX: 'auto',
           opacity: inView ? 1 : 0, transform: inView ? 'translateY(0)' : 'translateY(28px)',
           transition: 'all 0.7s ease',
           boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
         }}>
+          <div style={{ minWidth: 600 }}>
           {/* Header */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 160px', background: '#F8FAFC', borderBottom: '1.5px solid #E2E8F0' }}>
             <div style={{ padding: '16px 24px', fontWeight: 700, fontSize: '0.875rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Feature</div>
@@ -461,6 +464,7 @@ const ComparisonSection: React.FC = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
       </div>
     </section>

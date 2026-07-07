@@ -67,8 +67,10 @@ const Navbar: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <RouterLink to="/login" style={{ padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>Sign in</RouterLink>
-          <RouterLink to="/register" style={{ padding: '10px 22px', borderRadius: 8, background: '#1565C0', color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>Get Started Free</RouterLink>
+          <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <RouterLink to="/login" style={{ padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>Sign in</RouterLink>
+            <RouterLink to="/register" style={{ padding: '10px 22px', borderRadius: 8, background: '#1565C0', color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>Get Started Free</RouterLink>
+          </div>
           <button onClick={() => setMenuOpen(!menuOpen)} className="hamburger-btn" style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }} aria-label="Toggle menu">
             <span style={{ fontSize: 24 }}>{menuOpen ? '✕' : '☰'}</span>
           </button>
@@ -288,7 +290,7 @@ const ContactFormSection: React.FC = () => {
     <section ref={ref} style={{ padding: '80px 24px 100px', background: 'white' }}>
       <div style={{
         maxWidth: 1100, margin: '0 auto',
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: 56, alignItems: 'start',
       }}>
         {/* Left info panel */}

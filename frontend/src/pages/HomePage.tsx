@@ -104,22 +104,24 @@ const Navbar: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <RouterLink to="/login" style={{
-            padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent',
-            textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s',
-          }}>
-            Sign in
-          </RouterLink>
-          <RouterLink to="/register" style={{
-            padding: '10px 22px', borderRadius: 8, background: '#1565C0',
-            color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
-            transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#1D4ED8'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#1565C0'; }}
-          >
-            Get Started Free
-          </RouterLink>
+          <div className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <RouterLink to="/login" style={{
+              padding: '9px 20px', borderRadius: 8, color: '#111827', border: 'none', background: 'transparent',
+              textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', transition: 'all 0.2s',
+            }}>
+              Sign in
+            </RouterLink>
+            <RouterLink to="/register" style={{
+              padding: '10px 22px', borderRadius: 8, background: '#1565C0',
+              color: 'white', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem',
+              transition: 'all 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1D4ED8'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#1565C0'; }}
+            >
+              Get Started Free
+            </RouterLink>
+          </div>
 
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#1A2332' }} className="hamburger-btn" aria-label="Toggle menu">
             <span style={{ fontSize: 24 }}>{menuOpen ? '✕' : '☰'}</span>
