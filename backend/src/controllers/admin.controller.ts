@@ -172,6 +172,7 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
       totalPrescriptions,
       topSpecializations,
       appointmentTrend,
+      patientDemographics,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'PATIENT' }),
@@ -208,6 +209,30 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
         { $sort: { _id: 1 } },
         { $project: { date: '$_id', count: 1, _id: 0 } },
       ]),
+
+      // Patient Demographics (Age groups)
+      Patient.aggregate([
+        {
+          $project: {
+            age: {
+              $floor: {
+                $divide: [
+                  { $subtract: [new Date(), '$dateOfBirth'] },
+                  1000 * 60 * 60 * 24 * 365.25,
+                ],
+              },
+            },
+          },
+        },
+        {
+          $bucket: {
+            groupBy: '$age',
+            boundaries: [0, 18, 30, 45, 60, 200],
+            default: 'Unknown',
+            output: { count: { $sum: 1 } },
+          },
+        },
+      ]),
     ]);
 
     // Shape appointment status breakdown
@@ -216,6 +241,10 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
       appointmentStatusBreakdown[s._id] = s.count;
     }
     const totalAppointments = Object.values(appointmentStatusBreakdown).reduce((a, b) => a + b, 0);
+    const totalConsultations = appointmentStatusBreakdown['COMPLETED'] ?? 0;
+    
+    // Mock Revenue ($100 per completed consultation)
+    const totalRevenue = totalConsultations * 100;
 
     const response: ApiResponse = {
       success: true,
@@ -229,9 +258,11 @@ export const getAnalytics = async (req: Request, res: Response, next: NextFuncti
         totalAppointments,
         appointmentStatusBreakdown,
         totalPrescriptions,
-        totalConsultations: appointmentStatusBreakdown['COMPLETED'] ?? 0,
+        totalConsultations,
+        totalRevenue,
         topSpecializations,
         appointmentTrend,
+        patientDemographics,
       },
     };
     res.status(200).json(response);

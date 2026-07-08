@@ -161,6 +161,8 @@ export const appointmentsApi = {
     apiClient.get<ApiResponse>(`/doctors/${doctorId}/slots`, { params: { date } }),
   updateDoctorSlots: (doctorId: string, slots: unknown[]) =>
     apiClient.put<ApiResponse>(`/doctors/${doctorId}/slots`, { slots }),
+  getDoctorAnalytics: () =>
+    apiClient.get<ApiResponse>('/appointments/doctor/analytics'),
 };
 
 // ──────────────────────────────────────────────────────────────

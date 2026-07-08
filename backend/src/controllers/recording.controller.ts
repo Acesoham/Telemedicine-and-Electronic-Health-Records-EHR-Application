@@ -27,7 +27,8 @@ export const startRecording = async (req: Request, res: Response, next: NextFunc
       status: 'RECORDING',
     });
     if (existing) {
-      return res.json({ success: true, message: 'Recording already in progress', data: existing });
+      res.json({ success: true, message: 'Recording already in progress', data: existing });
+      return;
     }
 
     const recording = await Recording.create({

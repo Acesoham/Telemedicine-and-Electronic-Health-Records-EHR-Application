@@ -2,17 +2,18 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Grid, Card, CardContent, Chip, Skeleton, Alert,
-  alpha, LinearProgress, Divider, Avatar, List, ListItem, ListItemAvatar,
+  alpha, Divider, Avatar, List, ListItem, ListItemAvatar,
   ListItemText, IconButton, Tooltip,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon, People, Security, BarChart,
   TrendingUp, EventNote, VideoCall, MedicalServices,
   HealthAndSafety, Refresh, Person, CheckCircle, Cancel,
-  AccessTime, MonitorHeart,
+  AccessTime, MonitorHeart, AttachMoney
 } from '@mui/icons-material';
 import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
 import { adminApi } from '../../services/api';
+import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const navItems: NavItem[] = [
   { label: 'Dashboard',       path: '/admin/dashboard',  icon: <DashboardIcon /> },
@@ -77,89 +78,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, color, icon
   </Card>
 );
 
-// ─── Mini Bar Chart ──────────────────────────────────────────
-interface BarChartProps { data: { label: string; value: number }[]; color: string; title: string }
+const COLORS = ['#1565C0', '#2E7D32', '#F57F17', '#C62828', '#7B1FA2', '#00897B'];
 
-const MiniBarChart: React.FC<BarChartProps> = ({ data, color, title }) => {
-  const max = Math.max(...data.map(d => d.value), 1);
-  return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ fontWeight: 700,  mb: 2 }}>{title}</Typography>
-      {data.map((d) => (
-        <Box key={d.label} sx={{ mb: 1.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="caption" color="text.secondary">{d.label}</Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700 }}>{d.value}</Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={(d.value / max) * 100}
-            sx={{
-              height: 8, borderRadius: 4,
-              bgcolor: alpha(color, 0.1),
-              '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 4 },
-            }}
-          />
-        </Box>
-      ))}
-    </Box>
-  );
-};
-
-// ─── Appointment Status Donut (CSS-only) ─────────────────────
-interface DonutProps { confirmed: number; pending: number; cancelled: number }
-const StatusDonut: React.FC<DonutProps> = ({ confirmed, pending, cancelled }) => {
-  const total = confirmed + pending + cancelled || 1;
-  const pct = (n: number) => Math.round((n / total) * 100);
-  const items = [
-    { label: 'Confirmed', count: confirmed, pct: pct(confirmed), color: '#2E7D32' },
-    { label: 'Pending',   count: pending,   pct: pct(pending),   color: '#F57F17' },
-    { label: 'Cancelled', count: cancelled, pct: pct(cancelled), color: '#C62828' },
-  ];
-
-  // Build conic-gradient stops
-  let acc = 0;
-  const stops = items.map(item => {
-    const from = acc;
-    acc += item.pct;
-    return `${item.color} ${from}% ${acc}%`;
-  });
-
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-      <Box sx={{
-        width: 120, height: 120, borderRadius: '50%', flexShrink: 0,
-        background: `conic-gradient(${stops.join(', ')})`,
-        position: 'relative',
-        '&::after': {
-          content: '""', position: 'absolute',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 72, height: 72,
-          borderRadius: '50%',
-          bgcolor: 'background.paper',
-        },
-      }}>
-        <Box sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 1, textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1 }}>{total}</Typography>
-          <Typography variant="caption" color="text.secondary">Total</Typography>
-        </Box>
-      </Box>
-      <Box sx={{ flex: 1 }}>
-        {items.map(item => (
-          <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: item.color, flexShrink: 0 }} />
-            <Typography variant="body2" sx={{ flex: 1 }}>{item.label}</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.count}</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ minWidth: 30, textAlign: 'right' }}>{item.pct}%</Typography>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  );
-};
-
-// ─── Main Component ──────────────────────────────────────────
 type Analytics = {
   totalUsers?: number;
   totalPatients?: number;
@@ -173,10 +93,12 @@ type Analytics = {
   };
   totalPrescriptions?: number;
   totalConsultations?: number;
+  totalRevenue?: number;
   recentSignups?: number;
   unverifiedDoctors?: number;
   topSpecializations?: { _id: string; count: number }[];
   appointmentTrend?: { date: string; count: number }[];
+  patientDemographics?: { _id: number | string; count: number }[];
 };
 
 const AdminAnalytics: React.FC = () => {
@@ -201,41 +123,44 @@ const AdminAnalytics: React.FC = () => {
 
   useEffect(() => { fetchAnalytics(); }, []);
 
-  // Derived stats
   const totalAppts  = data?.totalAppointments ?? 0;
   const confirmed   = data?.appointmentStatusBreakdown?.CONFIRMED  ?? 0;
   const pending     = data?.appointmentStatusBreakdown?.PENDING    ?? 0;
   const cancelled   = data?.appointmentStatusBreakdown?.CANCELLED  ?? 0;
   const completed   = data?.appointmentStatusBreakdown?.COMPLETED  ?? 0;
-
   const completionRate = totalAppts > 0 ? Math.round(((confirmed + completed) / totalAppts) * 100) : 0;
 
-  const topSpecs: { label: string; value: number }[] = (data?.topSpecializations ?? []).map(s => ({
-    label: s._id || 'General',
-    value: s.count,
+  const trendData = (data?.appointmentTrend ?? []).slice(-7).map(t => ({
+    name: new Date(t.date).toLocaleDateString('en-IN', { weekday: 'short' }),
+    Appointments: t.count,
   }));
 
-  const trendData: { label: string; value: number }[] = (data?.appointmentTrend ?? [])
-    .slice(-7)
-    .map(t => ({
-      label: new Date(t.date).toLocaleDateString('en-IN', { weekday: 'short' }),
-      value: t.count,
-    }));
+  const pieData = [
+    { name: 'Completed', value: completed },
+    { name: 'Confirmed', value: confirmed },
+    { name: 'Pending', value: pending },
+    { name: 'Cancelled', value: cancelled },
+  ].filter(d => d.value > 0);
+
+  const ageData = (data?.patientDemographics ?? []).map(d => ({
+    name: typeof d._id === 'number' ? `${d._id}-${Number(d._id) + 10} yrs` : String(d._id),
+    Patients: d.count,
+  }));
+
+  const specializationsData = (data?.topSpecializations ?? []).slice(0, 5).map(s => ({
+    name: s._id || 'General',
+    Doctors: s.count,
+  }));
 
   const kpiCards: StatCardProps[] = [
     { title: 'Total Users',      value: data?.totalUsers ?? 0,      color: '#1565C0', icon: <People />,        trend: { value: 12, up: true },  subtitle: `${data?.recentSignups ?? 0} new this week` },
-    { title: 'Patients',         value: data?.totalPatients ?? 0,   color: '#00897B', icon: <Person />, trend: { value: 8, up: true } },
+    { title: 'Platform Revenue', value: `₹${data?.totalRevenue?.toLocaleString() ?? 0}`, color: '#2E7D32', icon: <AttachMoney />, trend: { value: 8, up: true }, subtitle: 'Mocked (₹100 per completed)' },
     { title: 'Doctors',          value: data?.totalDoctors ?? 0,    color: '#7B1FA2', icon: <MedicalServices />,trend: { value: 3, up: true },  subtitle: `${data?.unverifiedDoctors ?? 0} pending verification` },
     { title: 'Appointments',     value: totalAppts,                  color: '#E65100', icon: <EventNote />,     trend: { value: 15, up: true } },
-    { title: 'Prescriptions',    value: data?.totalPrescriptions ?? 0, color: '#0277BD', icon: <MonitorHeart />, trend: { value: 5, up: true } },
-    { title: 'Completion Rate',  value: `${completionRate}%`,       color: '#2E7D32', icon: <CheckCircle />,   subtitle: `${confirmed + completed} of ${totalAppts} appointments` },
-    { title: 'Pending Approval', value: pending,                    color: '#F57F17', icon: <AccessTime />,    subtitle: 'Awaiting confirmation' },
-    { title: 'Cancelled',        value: cancelled,                  color: '#C62828', icon: <Cancel />,        subtitle: 'This period' },
   ];
 
   return (
     <DashboardLayout navItems={navItems} title="Platform Analytics">
-
       {/* Hero */}
       <Box sx={{
         mb: 3, p: 3, borderRadius: 3,
@@ -246,7 +171,7 @@ const AdminAnalytics: React.FC = () => {
         <Box>
           <Typography variant="h4" gutterBottom sx={{ fontWeight: 800 }}>Platform Analytics</Typography>
           <Typography sx={{ color: 'rgba(255,255,255,0.75)' }}>
-            Real-time metrics, appointment trends, and system health monitoring.
+            Real-time metrics, platform growth, and demographic analysis.
           </Typography>
           {lastUpdated && (
             <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mt: 0.5, display: 'block' }}>
@@ -262,17 +187,6 @@ const AdminAnalytics: React.FC = () => {
         </Tooltip>
       </Box>
 
-      {/* System Health Banner */}
-      <Card sx={{ mb: 3, bgcolor: alpha('#2E7D32', 0.06), border: '1px solid', borderColor: alpha('#2E7D32', 0.2) }}>
-        <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <HealthAndSafety sx={{ color: '#2E7D32' }} />
-            <Typography color="#2E7D32" sx={{ fontWeight: 600 }}>System Status: All services operational</Typography>
-            <Chip label="Healthy" size="small" color="success" sx={{ ml: 'auto', fontWeight: 700 }} />
-          </Box>
-        </CardContent>
-      </Card>
-
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
       {/* KPI Grid */}
@@ -284,116 +198,106 @@ const AdminAnalytics: React.FC = () => {
         ))}
       </Grid>
 
-      {/* Charts Row */}
+      {/* Charts Row 1 */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* Appointment Status Breakdown */}
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 700,  mb: 3 }}>Appointment Breakdown</Typography>
-              {loading
-                ? <Skeleton variant="circular" width={120} height={120} sx={{ mx: 'auto' }} />
-                : <StatusDonut confirmed={confirmed + completed} pending={pending} cancelled={cancelled} />
-              }
-              <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                {[
-                  { label: 'Confirmed',  val: confirmed,  color: '#2E7D32' },
-                  { label: 'Completed',  val: completed,  color: '#1565C0' },
-                  { label: 'Pending',    val: pending,    color: '#F57F17' },
-                  { label: 'Cancelled',  val: cancelled,  color: '#C62828' },
-                ].map(s => (
-                  <Box key={s.label} sx={{ textAlign: 'center' }}>
-                    <Typography variant="h5" sx={{ fontWeight: 800,  color: s.color }}>
-                      {loading ? <Skeleton width={30} /> : s.val}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">{s.label}</Typography>
-                  </Box>
-                ))}
-              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>7-Day Appointment Trend</Typography>
+              {loading ? <Skeleton variant="rectangular" height={300} /> : (
+                <Box sx={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer>
+                    <AreaChart data={trendData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorAppts" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#1565C0" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#1565C0" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <RechartsTooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                      <Area type="monotone" dataKey="Appointments" stroke="#1565C0" strokeWidth={3} fillOpacity={1} fill="url(#colorAppts)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* 7-Day Trend */}
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>7-Day Appointment Trend</Typography>
-                <Chip icon={<TrendingUp />} label="This week" size="small" color="primary" variant="outlined" />
-              </Box>
-              {loading
-                ? [...Array(7)].map((_, i) => <Skeleton key={i} height={24} sx={{ mb: 1 }} />)
-                : trendData.length > 0
-                  ? <MiniBarChart data={trendData} color="#1565C0" title="" />
-                  : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <BarChart sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                      <Typography color="text.secondary">No trend data available yet</Typography>
-                    </Box>
-                  )
-              }
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Status Breakdown</Typography>
+              {loading ? <Skeleton variant="circular" width={200} height={200} sx={{ mx: 'auto' }} /> : (
+                <Box sx={{ width: '100%', height: 300, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <ResponsiveContainer width="100%" height="80%">
+                    <PieChart>
+                      <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    {pieData.map((entry, index) => (
+                      <Box key={entry.name} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: COLORS[index % COLORS.length] }} />
+                        <Typography variant="caption" sx={{ fontWeight: 600 }}>{entry.name} ({entry.value})</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Bottom Row */}
+      {/* Charts Row 2 */}
       <Grid container spacing={3}>
-        {/* Top Specializations */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 700,  mb: 2 }}>Top Specializations</Typography>
-              {loading
-                ? [...Array(5)].map((_, i) => <Skeleton key={i} height={32} sx={{ mb: 1 }} />)
-                : topSpecs.length > 0
-                  ? <MiniBarChart data={topSpecs.slice(0, 6)} color="#7B1FA2" title="" />
-                  : (
-                    <Box sx={{ textAlign: 'center', py: 4 }}>
-                      <MedicalServices sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
-                      <Typography color="text.secondary">No specialization data available</Typography>
-                    </Box>
-                  )
-              }
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Patient Demographics (Age)</Typography>
+              {loading ? <Skeleton variant="rectangular" height={300} /> : (
+                <Box sx={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer>
+                    <RechartsBarChart data={ageData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }} barSize={30}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                      <Bar dataKey="Patients" fill="#00897B" radius={[4, 4, 0, 0]} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Quick Stats List */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 700,  mb: 2 }}>Platform Summary</Typography>
-              <List dense disablePadding>
-                {[
-                  { label: 'Registered Patients',   value: data?.totalPatients    ?? 0, color: '#1565C0', icon: <Person /> },
-                  { label: 'Verified Doctors',       value: (data?.totalDoctors ?? 0) - (data?.unverifiedDoctors ?? 0), color: '#2E7D32', icon: <CheckCircle /> },
-                  { label: 'Pending Verification',   value: data?.unverifiedDoctors ?? 0, color: '#F57F17', icon: <AccessTime /> },
-                  { label: 'Total Prescriptions',    value: data?.totalPrescriptions ?? 0, color: '#0277BD', icon: <MonitorHeart /> },
-                  { label: 'Video Consultations',    value: data?.totalConsultations ?? 0, color: '#7B1FA2', icon: <VideoCall /> },
-                  { label: 'New Signups (7 days)',   value: data?.recentSignups     ?? 0, color: '#00897B', icon: <TrendingUp /> },
-                ].map((item, idx) => (
-                  <React.Fragment key={item.label}>
-                    <ListItem disablePadding sx={{ py: 1 }}>
-                      <ListItemAvatar sx={{ minWidth: 40 }}>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: alpha(item.color, 0.12), '& svg': { color: item.color, fontSize: 18 } }}>
-                          {item.icon}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={item.label}
-                        slotProps={{ primary: { variant: 'body2', color: 'text.secondary' } }}
-                      />
-                      <Typography variant="h6" sx={{ fontWeight: 800,  color: item.color }}>
-                        {loading ? <Skeleton width={36} /> : item.value}
-                      </Typography>
-                    </ListItem>
-                    {idx < 5 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Top Specializations</Typography>
+              {loading ? <Skeleton variant="rectangular" height={300} /> : (
+                <Box sx={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer>
+                    <RechartsBarChart data={specializationsData} layout="vertical" margin={{ top: 10, right: 30, left: 30, bottom: 0 }} barSize={20}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                      <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                      <RechartsTooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                      <Bar dataKey="Doctors" fill="#7B1FA2" radius={[0, 4, 4, 0]} />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -403,3 +307,4 @@ const AdminAnalytics: React.FC = () => {
 };
 
 export default AdminAnalytics;
+

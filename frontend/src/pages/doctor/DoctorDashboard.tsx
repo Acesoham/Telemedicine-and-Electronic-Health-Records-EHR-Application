@@ -17,6 +17,7 @@ import {
   CalendarToday as CalendarIcon,
   AccessTime as TimeIcon,
   Person as PersonIcon,
+  BarChart,
 } from '@mui/icons-material';
 import DashboardLayout, { NavItem } from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { label: 'Availability', path: '/doctor/availability', icon: <AvailabilityIcon /> },
   { label: 'Consultations', path: '/doctor/consultations', icon: <ConsultationsIcon /> },
   { label: 'Prescriptions', path: '/doctor/prescriptions/new', icon: <PrescriptionIcon /> },
+  { label: 'Analytics', path: '/doctor/analytics', icon: <BarChart /> },
   { label: 'My Profile', path: '/doctor/profile', icon: <PersonIcon /> },
 ];
 

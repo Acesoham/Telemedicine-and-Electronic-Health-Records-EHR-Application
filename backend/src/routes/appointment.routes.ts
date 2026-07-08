@@ -9,6 +9,7 @@ import {
   confirmAppointment,
   cancelAppointment,
   listDoctors,
+  getDoctorAnalytics,
 } from '../controllers/appointment.controller';
 import {
   createAppointmentSchema,
@@ -22,6 +23,9 @@ router.use(authenticate);
 
 // ── Doctors list (patients browse) ───────────────────────────────────────────
 router.get('/doctors', authorize('PATIENT', 'DOCTOR', 'ADMIN'), listDoctors);
+
+// ── Doctor Analytics ─────────────────────────────────────────────────────────
+router.get('/doctor/analytics', authorize('DOCTOR'), getDoctorAnalytics);
 
 // ── Appointments ─────────────────────────────────────────────────────────────
 router.get(

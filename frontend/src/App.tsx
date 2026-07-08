@@ -25,6 +25,7 @@ const DoctorAvailabilityPage = lazy(() => import('./pages/doctor/DoctorAvailabil
 const DoctorPatientsPage = lazy(() => import('./pages/doctor/DoctorPatients'));
 const DoctorConsultationsPage = lazy(() => import('./pages/doctor/DoctorConsultations'));
 const ConsultationRoom = lazy(() => import('./pages/shared/ConsultationRoom'));
+const DoctorAnalytics = lazy(() => import('./pages/doctor/DoctorAnalytics'));
 
 const AdminDashboard  = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminAuditLogs  = lazy(() => import('./pages/admin/AdminAuditLogs'));
@@ -120,6 +121,7 @@ const App: React.FC = () => {
                       <Route path="consultations" element={<DoctorConsultationsPage />} />
                       <Route path="consultation/:roomToken" element={<ConsultationRoom />} />
                       <Route path="prescriptions/new" element={<PrescriptionGenerator />} />
+                      <Route path="analytics" element={<DoctorAnalytics />} />
                       <Route path="*" element={<Navigate to="dashboard" replace />} />
                     </Routes>
                   </ProtectedRoute>
