@@ -1,6 +1,5 @@
 import { createTheme, alpha } from '@mui/material/styles';
-import { PaletteOptions } from '@mui/material/styles/createPalette';
-
+import type { PaletteOptions } from '@mui/material/styles';
 // ─────────────────────────────────────────────────────────────────────────────
 // MediVault Design System — Healthcare Professional Theme
 // ─────────────────────────────────────────────────────────────────────────────
