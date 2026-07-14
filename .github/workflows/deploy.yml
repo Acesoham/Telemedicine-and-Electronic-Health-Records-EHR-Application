@@ -16,41 +16,44 @@ jobs:
 
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
           port: 22
+          script_stop: true
 
           script: |
             set -e
 
-            echo "Changing directory..."
+            echo "=============================="
+            echo "🚀 MediVault Deployment Started"
+            echo "=============================="
+
             cd ~/Telemedicine-and-Electronic-Health-Records-EHR-Application
 
-            echo "Fetching latest code..."
+            echo "📥 Fetching latest code..."
             git fetch origin
 
-            echo "Resetting to latest master..."
+            echo "📦 Resetting to latest master..."
             git reset --hard origin/master
 
-            echo "Stopping old containers..."
-            docker compose down
+            echo "🧹 Cleaning unused Docker images..."
+            docker image prune -f || true
 
-            echo "Removing unused images..."
-            docker image prune -af || true
+            echo "🧹 Cleaning Docker builder cache..."
+            docker builder prune -f || true
 
-            echo "Removing build cache..."
-            docker builder prune -af || true
-
-            echo "Building latest images..."
+            echo "🔨 Building updated containers..."
             docker compose build
 
-            echo "Starting containers..."
-            docker compose up -d
+            echo "🚀 Starting containers..."
+            docker compose up -d --remove-orphans
 
-            echo "Waiting for startup..."
+            echo "⏳ Waiting for services to start..."
             sleep 20
 
-            echo "Running containers:"
+            echo "📦 Running Containers:"
             docker ps
 
-            echo "Deployment Successful!"
+            echo "=============================="
+            echo "✅ Deployment Successful!"
+            echo "=============================="

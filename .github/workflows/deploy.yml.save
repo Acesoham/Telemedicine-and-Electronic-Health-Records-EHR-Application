@@ -1,0 +1,45 @@
+name: MediVault CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.2.0
+
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+
+          script: |
+            set -e
+
+            echo "Changing directory..."
+            cd ~/Telemedicine-and-Electronic-Health-Records-EHR-Application
+
+            echo "Fetching latest code..."
+            git fetch origin
+
+            echo "Resetting to latest master..."
+            git reset --hard origin/master
+
+            echo "Stopping old containers..."
+            docker compose down
+
+            echo "Removing unused images..."
+            docker image prune -af || true
+
+            echo "Removing build cache..."
+            docker builder prune -af || true
+
+            echo "Building latest images..."
+            docker comp
